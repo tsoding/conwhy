@@ -8,7 +8,20 @@ let renderCell (cell: Cell): string =
   | Dead -> "."
   | Alive -> "@"
 
-let updateWorld (world: World): World = world
+let countNeighbors (world: World) ((i, j) : int * int): int =
+  0
+
+let nextGenCell (world: World) ((i, j): int * int): Cell =
+  let neighbors = countNeighbors world (i, j) in
+  match world.[i].[j] with
+  | Dead when neighbors = 3 -> Alive
+  | Alive -> Alive
+
+let updateWorld (world: World): World =
+  world
+  |> List.mapi (fun i row ->
+         List.mapi (fun j cell ->
+             nextGenCell world (i, j)) row)
 
 let renderWorld (world: World): string =
   world
