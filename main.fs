@@ -18,9 +18,11 @@ let renderWorld (world: World): string =
   |> String.concat "\n"
 
 let rec gameLoop (world: World): int =
-  Console.ReadLine() |> ignore;
-  world |> renderWorld |> printfn "%s";
-  world |> updateWorld |> gameLoop
+  match Console.ReadLine() with
+  | "quit" -> 0
+  | _ ->
+     world |> renderWorld |> printfn "%s";
+     world |> updateWorld |> gameLoop
 
 [<EntryPoint>]
 let main _ =
