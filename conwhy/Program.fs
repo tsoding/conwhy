@@ -3,17 +3,22 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 
 type Cell = Dead | Alive
-type World = Cell list list
+type World = {
+  cells: Cell list list;
+  size: int * int
+}
 
 let parseCell (c: char): Cell =
   match c with
-  | '.' -> Dead
   | '@' -> Alive
+  | _ -> Dead
 
-let makeWorld (map: string list): World =
-  [for row in map do
-     yield [for c in row do
-              yield (parseCell c)]]
+let makeWorld (map: string list): World = {
+  cells = [for row in map do
+           yield [for c in row do
+                  yield (parseCell c)]];
+  size = (List.length map, String.length map.[0])
+}
 
 let renderCell (cell: Cell): string =
   match cell with
@@ -27,7 +32,7 @@ let countNeighbors (world: World) ((i, j) : int * int): int =
   |> List.filter (fun x -> x <> (0, 0))
   |> List.map (fun (di, dj) ->
          try
-           match world.[i + di].[j + dj] with
+           match world.cells.[i + di].[j + dj] with
            | Dead -> 0
            | Alive -> 1
          with
@@ -36,19 +41,21 @@ let countNeighbors (world: World) ((i, j) : int * int): int =
 
 let nextGenCell (world: World) ((i, j): int * int): Cell =
   let neighbors = countNeighbors world (i, j) in
-  match world.[i].[j] with
+  match world.cells.[i].[j] with
   | Dead when neighbors = 3 -> Alive
   | Alive when neighbors < 2 || neighbors > 3 -> Dead
   | x -> x
 
 let updateWorld (world: World): World =
-  world
-  |> List.mapi (fun i row ->
-         List.mapi (fun j cell ->
-             nextGenCell world (i, j)) row)
+  { cells = world.cells
+            |> List.mapi (fun i row ->
+                   List.mapi (fun j cell ->
+                       nextGenCell world (i, j)) row);
+    size = world.size
+  }
 
 let renderWorld (world: World): string =
-  world
+  world.cells
   |> List.map (fun (row) -> row
                             |> List.map renderCell
                             |> String.concat "")
@@ -72,13 +79,13 @@ type Game1 () as this =
         do base.Initialize()
         ()
 
-    override this.LoadContent() = 
+    override this.LoadContent() =
         ()
 
     override this.Update(gameTime) =
         ()
 
-    override this.Draw(gameTime) = 
+    override this.Draw(gameTime) =
         do this.GraphicsDevice.Clear Color.Red
         ()
 
