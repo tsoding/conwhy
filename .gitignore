@@ -90,3 +90,5 @@ bin
 test-results/
 
 # End of https://www.gitignore.io/api/emacs,fsharp,monodevelop
+
+packages/

@@ -1,4 +1,6 @@
 open System
+open Microsoft.Xna.Framework
+open Microsoft.Xna.Framework.Graphics
 
 type Cell = Dead | Alive
 type World = Cell list list
@@ -59,16 +61,29 @@ let rec gameLoop (world: World): int =
      world |> renderWorld |> printfn "%s";
      world |> updateWorld |> gameLoop
 
+type Game1 () as this =
+    inherit Game()
+    do this.Content.RootDirectory <- "Content"
+    let graphics = new GraphicsDeviceManager(this)
+    let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
+
+    override this.Initialize() =
+        do spriteBatch <- new SpriteBatch(this.GraphicsDevice)
+        do base.Initialize()
+        ()
+
+    override this.LoadContent() = 
+        ()
+
+    override this.Update(gameTime) =
+        ()
+
+    override this.Draw(gameTime) = 
+        do this.GraphicsDevice.Clear Color.Red
+        ()
+
 [<EntryPoint>]
 let main _ =
-  let world = makeWorld [".@........";
-                         "..@.......";
-                         "@@@.......";
-                         "..........";
-                         "..........";
-                         "..........";
-                         "..........";
-                         "..........";
-                         "..........";
-                         ".........."]
-  gameLoop world
+    use g = new Game1()
+    g.Run()
+    0
