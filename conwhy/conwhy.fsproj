@@ -25,10 +25,18 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="MonoGame.Framework">
+      <HintPath>..\packages\MonoGame.Framework.DesktopGL.3.6.0.1625\lib\net40\MonoGame.Framework.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Game.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="$(FSharpTargetsPath)" />
+  <ItemGroup>
+    <None Include="MonoGame.Framework.dll.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>
