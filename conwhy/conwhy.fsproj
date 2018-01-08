@@ -34,6 +34,12 @@
     <Reference Include="MonoGame.Framework">
       <HintPath>..\packages\MonoGame.Framework.DesktopGL.3.6.0.1625\lib\net40\MonoGame.Framework.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="MonoGame.Extended">
+      <HintPath>..\packages\MonoGame.Extended.1.0.617\lib\portable-net45+win8+wpa81\MonoGame.Extended.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />

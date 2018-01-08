@@ -1,6 +1,7 @@
 open System
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
+open MonoGame.Extended
 
 open Game
 
@@ -11,7 +12,6 @@ let rec cliRunner (world: World): int =
      world |> renderWorld |> printfn "%s";
      world |> updateWorld |> cliRunner
 
-// TODO(#11): implement MonogameRunner
 type MonogameRunner () as this =
     inherit Game()
     do this.Content.RootDirectory <- "Content"
@@ -30,7 +30,12 @@ type MonogameRunner () as this =
         ()
 
     override this.Draw(gameTime) =
-        this.GraphicsDevice.Clear Color.Red
+        this.GraphicsDevice.Clear Color.Blue
+        let viewport = this.GraphicsDevice.Viewport
+        spriteBatch.Begin();
+        spriteBatch.DrawLine(new Vector2(0.0f, 0.0f), new Vector2(float32 viewport.Width, float32 viewport.Height), Color.Red, 10.0f);
+        spriteBatch.DrawLine(new Vector2(float32 viewport.Width, 0.0f), new Vector2(0.0f, float32 viewport.Height), Color.Red, 10.0f);
+        spriteBatch.End();
         ()
 
 [<EntryPoint>]
