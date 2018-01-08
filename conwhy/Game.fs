@@ -1,21 +1,29 @@
 ﻿module Game
 
-type Cell = Dead | Alive
-type World = {
-  cells: Cell list list;
+type World = private {
+  alive: Set<int * int>;
   size: int * int
 }
 
-let parseCell (c: char): Cell =
-  match c with
-  | '@' -> Alive
-  | _ -> Dead
+let worldSize (world: World): int * int =
+    world.size
+
+let aliveCells (world: World): (int * int) list =
+    Set.fold (fun l se -> se::l) [] world.alive
 
 let makeWorld (map: string list): World = {
-  cells = [for row in map do
-           yield [for c in row do
-                  yield (parseCell c)]];
-  size = (List.length map, String.length map.[0])
+  size = (List.length map, String.length map.[0]);
+  alive = map
+          |> List.mapi (fun i row ->
+              row
+              |> Seq.toList
+              |> List.mapi (fun j cell ->
+                 if cell = '@'
+                 then [(i, j)]
+                 else [])
+              |> List.concat)
+          |> List.concat
+          |> Set.ofList
 }
 
 let countNeighbors (world: World) ((i, j) : int * int): int =
@@ -24,26 +32,25 @@ let countNeighbors (world: World) ((i, j) : int * int): int =
    yield (i, j)]
   |> List.filter (fun x -> x <> (0, 0))
   |> List.map (fun (di, dj) ->
-         try
-           match world.cells.[i + di].[j + dj] with
-           | Dead -> 0
-           | Alive -> 1
-         with
-         | :? System.ArgumentException as ex -> 0)
+           if Set.contains (i + di, j + dj) world.alive
+           then 1
+           else 0)
   |> List.fold (+) 0
 
-let nextGenCell (world: World) ((i, j): int * int): Cell =
+let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
   let neighbors = countNeighbors world (i, j) in
-  match world.cells.[i].[j] with
-  | Dead when neighbors = 3 -> Alive
-  | Alive when neighbors < 2 || neighbors > 3 -> Dead
-  | x -> x
+  match Set.contains (i, j) world.alive with
+  | false when neighbors = 3 -> [(i, j)]
+  | true when neighbors < 2 || neighbors > 3 -> []
+  | false -> []
+  | true -> [(i, j)]
 
 let updateWorld (world: World): World =
-  { cells = world.cells
-            |> List.mapi (fun i row ->
-                   List.mapi (fun j cell ->
-                       nextGenCell world (i, j)) row);
+  let (row, column) = world.size
+  { alive = [for i in 0 .. (row - 1) do
+             for j in 0 .. (column - 1) do
+             yield nextGenCell world (i, j)]
+            |> List.concat
+            |> Set.ofList;
     size = world.size
   }
-

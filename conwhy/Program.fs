@@ -44,26 +44,22 @@ type MonogameRunner () as this =
         let viewport = this.GraphicsDevice.Viewport
         spriteBatch.Begin();
         this.DrawWorld(!world);
-        this.DrawGrid (!world).size;
+        this.DrawGrid (worldSize !world);
         spriteBatch.End();
         ()
 
     member this.DrawWorld (world: World) =
-        let (rows, columns) = world.size
+        let (rows, columns) = worldSize world
         let viewport = this.GraphicsDevice.Viewport
         let cellHeight = (float32 viewport.Height) / (float32 rows)
         let cellWidth = (float32 viewport.Width) / (float32 columns)
-        world.cells
-        |> List.iteri (fun i row ->
-            row
-            |> List.iteri (fun j cell ->
-                match cell with
-                | Alive -> spriteBatch.FillRectangle(
-                               new RectangleF(float32 j * cellWidth,
-                                              float32 i * cellHeight,
+        aliveCells world
+        |> List.iter (fun (row, column) ->
+               spriteBatch.FillRectangle(
+                               new RectangleF(float32 column * cellWidth,
+                                              float32 row * cellHeight,
                                               cellWidth, cellHeight),
-                               Color(128, 128, 128))
-                | Dead -> ()))
+                               Color(128, 128, 128)))
         ()
 
     member this.DrawGrid(rows: int, columns: int) =
