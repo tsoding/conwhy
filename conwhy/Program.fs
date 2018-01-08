@@ -6,13 +6,6 @@ open MonoGame.Extended
 
 open Game
 
-let rec cliRunner (world: World): int =
-  match Console.ReadLine() with
-  | "quit" -> 0
-  | _ ->
-     world |> renderWorld |> printfn "%s";
-     world |> updateWorld |> cliRunner
-
 type MonogameRunner () as this =
     inherit Game()
     do this.Content.RootDirectory <- "Content"
