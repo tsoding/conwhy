@@ -68,7 +68,7 @@ let rec gameLoop (world: World): int =
      world |> renderWorld |> printfn "%s";
      world |> updateWorld |> gameLoop
 
-type Game1 () as this =
+type MonogameRunner () as this =
     inherit Game()
     do this.Content.RootDirectory <- "Content"
     let graphics = new GraphicsDeviceManager(this)
@@ -91,6 +91,6 @@ type Game1 () as this =
 
 [<EntryPoint>]
 let main _ =
-    use g = new Game1()
+    use g = new MonogameRunner()
     g.Run()
     0
