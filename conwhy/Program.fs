@@ -19,8 +19,8 @@ type MonogameRunner () as this =
     let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
 
     override this.Initialize() =
-        do spriteBatch <- new SpriteBatch(this.GraphicsDevice)
-        do base.Initialize()
+        spriteBatch <- new SpriteBatch(this.GraphicsDevice)
+        base.Initialize()
         ()
 
     override this.LoadContent() =
@@ -30,7 +30,7 @@ type MonogameRunner () as this =
         ()
 
     override this.Draw(gameTime) =
-        do this.GraphicsDevice.Clear Color.Red
+        this.GraphicsDevice.Clear Color.Red
         ()
 
 [<EntryPoint>]
