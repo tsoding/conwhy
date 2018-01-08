@@ -18,11 +18,6 @@ let makeWorld (map: string list): World = {
   size = (List.length map, String.length map.[0])
 }
 
-let renderCell (cell: Cell): string =
-  match cell with
-  | Dead -> "."
-  | Alive -> "@"
-
 let countNeighbors (world: World) ((i, j) : int * int): int =
   [for i in -1 .. 1 do
    for j in -1 .. 1 do
@@ -52,9 +47,3 @@ let updateWorld (world: World): World =
     size = world.size
   }
 
-let renderWorld (world: World): string =
-  world.cells
-  |> List.map (fun (row) -> row
-                            |> List.map renderCell
-                            |> String.concat "")
-  |> String.concat "\n"
