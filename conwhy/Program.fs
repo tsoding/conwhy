@@ -17,6 +17,11 @@ type MonogameRunner () as this =
     do this.Content.RootDirectory <- "Content"
     let graphics = new GraphicsDeviceManager(this)
     let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
+    let world = makeWorld [".@...";
+                           "..@..";
+                           "@@@..";
+                           ".....";
+                           ".....";]
 
     override this.Initialize() =
         spriteBatch <- new SpriteBatch(this.GraphicsDevice)
@@ -33,8 +38,27 @@ type MonogameRunner () as this =
         this.GraphicsDevice.Clear(Color(24, 24, 24))
         let viewport = this.GraphicsDevice.Viewport
         spriteBatch.Begin();
-        this.DrawGrid(100, 100);
+        this.DrawWorld(world);
+        this.DrawGrid world.size;
         spriteBatch.End();
+        ()
+
+    member this.DrawWorld (world: World) =
+        let (rows, columns) = world.size
+        let viewport = this.GraphicsDevice.Viewport
+        let cellHeight = (float32 viewport.Height) / (float32 rows)
+        let cellWidth = (float32 viewport.Width) / (float32 columns)
+        world.cells
+        |> List.iteri (fun i row -> 
+            row
+            |> List.iteri (fun j cell ->
+                match cell with
+                | Alive -> spriteBatch.FillRectangle(
+                               new RectangleF(float32 j * cellWidth, 
+                                              float32 i * cellHeight,
+                                              cellWidth, cellHeight),
+                               Color(128, 128, 128))
+                | Dead -> ()))
         ()
 
     member this.DrawGrid(rows: int, columns: int) =
