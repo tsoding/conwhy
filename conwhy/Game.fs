@@ -9,6 +9,8 @@ type World = private {
   size: int * int
 }
 
+let modulo n m = ((n % m) + m) % m
+
 let makeWorld (map: string list): World = {
   size = (List.length map, String.length map.[0]);
   alive = map
@@ -25,15 +27,15 @@ let makeWorld (map: string list): World = {
 }
 
 let countNeighbors (world: World) ((i, j) : int * int): int =
+  let (rows, columns) = world.size
   [for i in -1 .. 1 do
    for j in -1 .. 1 do
    yield (i, j)]
   |> List.filter (fun x -> x <> (0, 0))
-  |> List.map (fun (di, dj) ->
-           if Set.contains (i + di, j + dj) world.alive
+  |> List.sumBy (fun (di, dj) ->
+           if Set.contains (modulo (i + di) rows, modulo (j + dj) columns) world.alive
            then 1
            else 0)
-  |> List.fold (+) 0
 
 let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
   let neighbors = countNeighbors world (i, j) in
@@ -59,7 +61,7 @@ let renderWorld (world: World) (spriteBatch: SpriteBatch) (viewport: Viewport): 
     world.alive
     |> Set.iter (fun (row, column) ->
         spriteBatch.FillRectangle(
-            new RectangleF(float32 column * cellWidth,
-                           float32 row * cellHeight,
-                           cellWidth, cellHeight),
+            RectangleF(float32 column * cellWidth,
+                       float32 row * cellHeight,
+                       cellWidth, cellHeight),
             Color(128, 128, 128)))
