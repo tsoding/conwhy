@@ -47,7 +47,7 @@ let countNeighbors (world: World) ((i, j) : int * int): int =
 
 let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
   let neighbors = countNeighbors world (i, j) in
-  match Set.contains (i, j) world.alive with
+  match Set.contains (i, j) (Set.add world.player world.alive) with
   | false when neighbors = 3 -> [(i, j)]
   | true when neighbors < 2 || neighbors > 3 -> []
   | false -> []
@@ -55,12 +55,16 @@ let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
 
 let nextWorld (world: World): World =
   let (row, column) = world.size
-  { world with alive = [for i in 0 .. (row - 1) do
-                        for j in 0 .. (column - 1) do
-                        yield nextGenCell world (i, j)]
-                       |> List.concat
-                       |> Set.ofList
-  }
+  match nextGenCell world world.player with
+  | [nextPlayer] -> { world with alive = [for i in 0 .. (row - 1) do
+                                          for j in 0 .. (column - 1) do
+                                          yield nextGenCell world (i, j)]
+                                         |> List.concat
+                                         |> Set.ofList
+                                         |> Set.remove nextPlayer
+                                 player = nextPlayer
+                    }
+  | _ -> failwith "Game Over"
 
 let renderWorld (world: World) (spriteBatch: SpriteBatch) (viewport: Viewport): unit =
     let (rows, columns) = world.size

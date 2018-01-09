@@ -11,7 +11,7 @@ type MonogameRunner () as this =
     do this.Content.RootDirectory <- "Content"
     let graphics = new GraphicsDeviceManager(this)
     let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
-    let mutable world = ref (makeWorld [".+........";
+    let mutable world = ref (makeWorld [".+@.......";
                                         "..@.......";
                                         "@@@.......";
                                         "..........";
