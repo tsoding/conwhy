@@ -1,15 +1,13 @@
 ﻿module Game
 
+open Microsoft.Xna.Framework
+open Microsoft.Xna.Framework.Graphics
+open MonoGame.Extended
+
 type World = private {
   alive: Set<int * int>;
   size: int * int
 }
-
-let worldSize (world: World): int * int =
-    world.size
-
-let aliveCells (world: World): (int * int) list =
-    Set.fold (fun l se -> se::l) [] world.alive
 
 let makeWorld (map: string list): World = {
   size = (List.length map, String.length map.[0]);
@@ -47,10 +45,21 @@ let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
 
 let updateWorld (world: World): World =
   let (row, column) = world.size
-  { alive = [for i in 0 .. (row - 1) do
-             for j in 0 .. (column - 1) do
-             yield nextGenCell world (i, j)]
-            |> List.concat
-            |> Set.ofList;
-    size = world.size
+  { world with alive = [for i in 0 .. (row - 1) do
+                        for j in 0 .. (column - 1) do
+                        yield nextGenCell world (i, j)]
+                       |> List.concat
+                       |> Set.ofList
   }
+
+let renderWorld (world: World) (spriteBatch: SpriteBatch) (viewport: Viewport): unit =
+    let (rows, columns) = world.size
+    let cellWidth = (float32 viewport.Width) / (float32 columns)
+    let cellHeight = (float32 viewport.Height) / (float32 rows)
+    world.alive
+    |> Set.iter (fun (row, column) ->
+        spriteBatch.FillRectangle(
+            new RectangleF(float32 column * cellWidth,
+                           float32 row * cellHeight,
+                           cellWidth, cellHeight),
+            Color(128, 128, 128)))

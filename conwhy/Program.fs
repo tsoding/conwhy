@@ -41,41 +41,9 @@ type MonogameRunner () as this =
 
     override this.Draw(gameTime) =
         this.GraphicsDevice.Clear(Color(24, 24, 24))
-        let viewport = this.GraphicsDevice.Viewport
         spriteBatch.Begin();
-        this.DrawWorld(!world);
-        this.DrawGrid (worldSize !world);
+        renderWorld !world spriteBatch this.GraphicsDevice.Viewport;
         spriteBatch.End();
-        ()
-
-    member this.DrawWorld (world: World) =
-        let (rows, columns) = worldSize world
-        let viewport = this.GraphicsDevice.Viewport
-        let cellHeight = (float32 viewport.Height) / (float32 rows)
-        let cellWidth = (float32 viewport.Width) / (float32 columns)
-        aliveCells world
-        |> List.iter (fun (row, column) ->
-               spriteBatch.FillRectangle(
-                               new RectangleF(float32 column * cellWidth,
-                                              float32 row * cellHeight,
-                                              cellWidth, cellHeight),
-                               Color(128, 128, 128)))
-        ()
-
-    member this.DrawGrid(rows: int, columns: int) =
-        let viewport = this.GraphicsDevice.Viewport
-        let cellHeight = (float32 viewport.Height) / (float32 rows)
-        let cellWidth = (float32 viewport.Width) / (float32 columns)
-        for i in 1 .. rows do
-            spriteBatch.DrawLine(
-                new Vector2(0.0f, float32 i * cellHeight),
-                new Vector2(float32 viewport.Width, float32 i * cellHeight),
-                Color(50, 50, 50))
-        for i in 1 .. columns do
-            spriteBatch.DrawLine(
-                new Vector2(float32 i * cellWidth, 0.0f),
-                new Vector2(float32 i * cellWidth, float32 viewport.Height),
-                Color(50, 50, 50))
         ()
 
 [<EntryPoint>]
