@@ -21,8 +21,7 @@ type MonogameRunner () as this =
                                         "..........";
                                         "..........";
                                         "..........";])
-    let lastMouseState = ref (Mouse.GetState())
-    let currentMouseState = ref (Mouse.GetState())
+    let previousMouseState = ref (Mouse.GetState())
 
     override this.Initialize() =
         spriteBatch <- new SpriteBatch(this.GraphicsDevice)
@@ -33,11 +32,11 @@ type MonogameRunner () as this =
         ()
 
     override this.Update(gameTime) =
-        lastMouseState := !currentMouseState
-        currentMouseState := Mouse.GetState()
-        if ((!lastMouseState).LeftButton = ButtonState.Released && (!currentMouseState).LeftButton = ButtonState.Pressed)
+        let currentMouseState = Mouse.GetState()
+        if ((!previousMouseState).LeftButton = ButtonState.Released && currentMouseState.LeftButton = ButtonState.Pressed)
         then world := nextWorld (!world)
         else ()
+        previousMouseState := currentMouseState
 
     override this.Draw(gameTime) =
         this.GraphicsDevice.Clear(Color(24, 24, 24))
