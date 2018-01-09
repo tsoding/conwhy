@@ -4,13 +4,33 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open MonoGame.Extended
 
+type Direction = Left | Right | Top | Bottom
+
 type World = private {
   alive: Set<int * int>;
   size: int * int;
   player: int * int
 }
 
-let modulo n m = ((n % m) + m) % m
+let private modulo n m = ((n % m) + m) % m
+
+let moveCoord (direction: Direction) ((row, column): (int * int)): (int * int) =
+    match direction with
+    | Left   -> (row    , column - 1)
+    | Right  -> (row    , column + 1)
+    | Top    -> (row - 1, column)
+    | Bottom -> (row + 1, column)
+
+let wrapCoord ((rows, columns): (int * int)) ((row, column): (int * int)): (int * int) =
+    (modulo row rows, modulo column columns)
+
+let movePlayer (world: World) (direction: Direction): World =
+    let nextPlayer = world.player
+                     |> moveCoord direction
+                     |> wrapCoord world.size
+    if Set.contains nextPlayer world.alive
+    then world
+    else { world with player = nextPlayer }
 
 let indexMap (map: string list): (char * int * int) list =
     map
