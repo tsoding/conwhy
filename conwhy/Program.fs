@@ -11,7 +11,7 @@ type MonogameRunner () as this =
     do this.Content.RootDirectory <- "Content"
     let graphics = new GraphicsDeviceManager(this)
     let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
-    let mutable world = ref (makeWorld [".+@.......";
+    let mutable world = ref (makeWorld [".+........";
                                         "..@.......";
                                         "@@@.......";
                                         "..........";
@@ -22,6 +22,10 @@ type MonogameRunner () as this =
                                         "..........";
                                         "..........";])
     let previousMouseState = ref (Mouse.GetState())
+    let previousKeyboardState = ref (Keyboard.GetState())
+
+    member this.KeyPressed (keyboardState: KeyboardState) (key: Keys): bool =
+        (!previousKeyboardState).IsKeyUp(key) && keyboardState.IsKeyDown(key)
 
     override this.Initialize() =
         spriteBatch <- new SpriteBatch(this.GraphicsDevice)
@@ -33,10 +37,20 @@ type MonogameRunner () as this =
 
     override this.Update(gameTime) =
         let currentMouseState = Mouse.GetState()
-        if ((!previousMouseState).LeftButton = ButtonState.Released && currentMouseState.LeftButton = ButtonState.Pressed)
-        then world := nextWorld (!world)
+        let currentKeyboardState = Keyboard.GetState()
+        
+        if this.KeyPressed currentKeyboardState Keys.Left
+        then world := (!world) |> movePlayer Left |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.Right
+        then world := (!world) |> movePlayer Right |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.Up
+        then world := (!world) |> movePlayer Up |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.Down
+        then world := (!world) |> movePlayer Down |> nextWorld
         else ()
+
         previousMouseState := currentMouseState
+        previousKeyboardState := currentKeyboardState
 
     override this.Draw(gameTime) =
         this.GraphicsDevice.Clear(Color(24, 24, 24))

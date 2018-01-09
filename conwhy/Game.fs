@@ -4,7 +4,7 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open MonoGame.Extended
 
-type Direction = Left | Right | Top | Bottom
+type Direction = Left | Right | Up | Down
 
 type World = private {
   alive: Set<int * int>;
@@ -18,13 +18,13 @@ let moveCoord (direction: Direction) ((row, column): (int * int)): (int * int) =
     match direction with
     | Left   -> (row    , column - 1)
     | Right  -> (row    , column + 1)
-    | Top    -> (row - 1, column)
-    | Bottom -> (row + 1, column)
+    | Up    -> (row - 1, column)
+    | Down -> (row + 1, column)
 
 let wrapCoord ((rows, columns): (int * int)) ((row, column): (int * int)): (int * int) =
     (modulo row rows, modulo column columns)
 
-let movePlayer (world: World) (direction: Direction): World =
+let movePlayer (direction: Direction) (world: World): World =
     let nextPlayer = world.player
                      |> moveCoord direction
                      |> wrapCoord world.size
