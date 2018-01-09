@@ -11,23 +11,28 @@ type MonogameRunner () as this =
     do this.Content.RootDirectory <- "Content"
     let graphics = new GraphicsDeviceManager(this)
     let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
-    let mutable world = ref (makeWorld [".+........";
-                                        "..@.......";
-                                        "@@@.......";
-                                        "..........";
-                                        "..........";
-                                        "..........";
-                                        "..........";
-                                        "..........";
-                                        "..........";
-                                        "..........";])
+    let initialWorld = makeWorld [".+@.......";
+                                  "..@..@@...";
+                                  "@@@.@@....";
+                                  ".......@@.";
+                                  "...@.@@@..";
+                                  "......@@..";
+                                  "......@...";
+                                  "..........";
+                                  "..........";
+                                  "..........";]
+    let mutable world = ref (initialWorld)
     let previousMouseState = ref (Mouse.GetState())
     let previousKeyboardState = ref (Keyboard.GetState())
 
     member this.KeyPressed (keyboardState: KeyboardState) (key: Keys): bool =
         (!previousKeyboardState).IsKeyUp(key) && keyboardState.IsKeyDown(key)
 
+    member this.PlayTurn (direction: Direction): unit =
+        world := (!world) |> movePlayer direction |> nextWorld
+
     override this.Initialize() =
+        this.IsMouseVisible <- true
         graphics.PreferredBackBufferWidth <- 1000
         graphics.PreferredBackBufferHeight <- 1000
         graphics.ApplyChanges()
@@ -43,21 +48,25 @@ type MonogameRunner () as this =
         let currentKeyboardState = Keyboard.GetState()
         
         if this.KeyPressed currentKeyboardState Keys.A
-        then world := (!world) |> movePlayer Left |> nextWorld
+        then this.PlayTurn Left
         else if this.KeyPressed currentKeyboardState Keys.D
-        then world := (!world) |> movePlayer Right |> nextWorld
+        then this.PlayTurn Right
         else if this.KeyPressed currentKeyboardState Keys.W
-        then world := (!world) |> movePlayer Up |> nextWorld
+        then this.PlayTurn Up
         else if this.KeyPressed currentKeyboardState Keys.X
-        then world := (!world) |> movePlayer Down |> nextWorld
+        then this.PlayTurn Down
         else if this.KeyPressed currentKeyboardState Keys.Q
-        then world := (!world) |> movePlayer LeftUp |> nextWorld
+        then this.PlayTurn LeftUp
         else if this.KeyPressed currentKeyboardState Keys.E
-        then world := (!world) |> movePlayer RightUp |> nextWorld
+        then this.PlayTurn RightUp
         else if this.KeyPressed currentKeyboardState Keys.Z
-        then world := (!world) |> movePlayer LeftDown |> nextWorld
+        then this.PlayTurn LeftDown
         else if this.KeyPressed currentKeyboardState Keys.C
-        then world := (!world) |> movePlayer RightDown |> nextWorld
+        then this.PlayTurn RightDown
+        else if this.KeyPressed currentKeyboardState Keys.F
+        then world := (!world) |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.Space
+        then world := initialWorld
         else ()
 
         previousMouseState := currentMouseState
