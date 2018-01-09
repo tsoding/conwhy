@@ -28,6 +28,9 @@ type MonogameRunner () as this =
         (!previousKeyboardState).IsKeyUp(key) && keyboardState.IsKeyDown(key)
 
     override this.Initialize() =
+        graphics.PreferredBackBufferWidth <- 1000
+        graphics.PreferredBackBufferHeight <- 1000
+        graphics.ApplyChanges()
         spriteBatch <- new SpriteBatch(this.GraphicsDevice)
         base.Initialize()
         ()
