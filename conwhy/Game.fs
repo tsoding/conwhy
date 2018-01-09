@@ -66,10 +66,11 @@ let renderWorld (world: World) (spriteBatch: SpriteBatch) (viewport: Viewport): 
     let (rows, columns) = world.size
     let cellWidth = (float32 viewport.Width) / (float32 columns)
     let cellHeight = (float32 viewport.Height) / (float32 rows)
-    world.alive
-    |> Set.iter (fun (row, column) ->
+    let renderCell (color: Color) ((row, column): (int * int)): unit =
         spriteBatch.FillRectangle(
             RectangleF(float32 column * cellWidth,
                        float32 row * cellHeight,
                        cellWidth, cellHeight),
-            Color(128, 128, 128)))
+            color)
+    world.alive |> Set.iter (renderCell (Color (128, 128, 128)))
+    world.player |> renderCell (Color (128, 0, 0))
