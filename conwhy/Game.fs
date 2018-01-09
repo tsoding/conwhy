@@ -4,27 +4,59 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open MonoGame.Extended
 
+type Direction = Left | Right | Up | Down | LeftUp | RightUp | LeftDown | RightDown
+
 type World = private {
   alive: Set<int * int>;
-  size: int * int
+  size: int * int;
+  player: int * int
 }
 
-let modulo n m = ((n % m) + m) % m
+let private modulo n m = ((n % m) + m) % m
 
-let makeWorld (map: string list): World = {
-  size = (List.length map, String.length map.[0]);
-  alive = map
-          |> List.mapi (fun i row ->
-              row
-              |> Seq.toList
-              |> List.mapi (fun j cell ->
-                 if cell = '@'
-                 then [(i, j)]
-                 else [])
-              |> List.concat)
-          |> List.concat
-          |> Set.ofList
-}
+let moveCoord (direction: Direction) ((row, column): (int * int)): (int * int) =
+    match direction with
+    | Left      -> (row    , column - 1)
+    | Right     -> (row    , column + 1)
+    | Up        -> (row - 1, column)
+    | Down      -> (row + 1, column)
+    | LeftUp    -> (row - 1, column - 1)
+    | RightUp   -> (row - 1, column + 1)
+    | LeftDown  -> (row + 1, column - 1)
+    | RightDown -> (row + 1, column + 1)
+
+let wrapCoord ((rows, columns): (int * int)) ((row, column): (int * int)): (int * int) =
+    (modulo row rows, modulo column columns)
+
+let movePlayer (direction: Direction) (world: World): World =
+    let nextPlayer = world.player
+                     |> moveCoord direction
+                     |> wrapCoord world.size
+    if Set.contains nextPlayer world.alive
+    then world
+    else { world with player = nextPlayer }
+
+let indexMap (map: string list): (char * int * int) list =
+    map
+    |> List.mapi (fun i row ->
+        row
+        |> Seq.toList
+        |> List.mapi (fun j cell -> (cell, i, j)))
+    |> List.concat
+
+let makeWorld (map: string list): World =
+    let indexedMap = indexMap map
+    {
+        size = (List.length map, String.length map.[0]);
+        alive = indexedMap
+                |> List.filter (fun (x, _, _) -> x = '@')
+                |> List.map (fun (_, i, j) -> (i, j))
+                |> Set.ofList
+        player = (match indexedMap |> List.filter (fun (x, _, _) -> x = '+') with
+                  | [('+', i, j)] -> (i, j)
+                  | []            -> failwith "Not enough players"
+                  | _             -> failwith "Too many players")
+    }
 
 let countNeighbors (world: World) ((i, j) : int * int): int =
   let (rows, columns) = world.size
@@ -39,7 +71,7 @@ let countNeighbors (world: World) ((i, j) : int * int): int =
 
 let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
   let neighbors = countNeighbors world (i, j) in
-  match Set.contains (i, j) world.alive with
+  match Set.contains (i, j) (Set.add world.player world.alive) with
   | false when neighbors = 3 -> [(i, j)]
   | true when neighbors < 2 || neighbors > 3 -> []
   | false -> []
@@ -47,21 +79,26 @@ let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
 
 let nextWorld (world: World): World =
   let (row, column) = world.size
-  { world with alive = [for i in 0 .. (row - 1) do
-                        for j in 0 .. (column - 1) do
-                        yield nextGenCell world (i, j)]
-                       |> List.concat
-                       |> Set.ofList
-  }
+  match nextGenCell world world.player with
+  | [nextPlayer] -> { world with alive = [for i in 0 .. (row - 1) do
+                                          for j in 0 .. (column - 1) do
+                                          yield nextGenCell world (i, j)]
+                                         |> List.concat
+                                         |> Set.ofList
+                                         |> Set.remove nextPlayer
+                                 player = nextPlayer
+                    }
+  | _ -> failwith "Game Over"
 
 let renderWorld (world: World) (spriteBatch: SpriteBatch) (viewport: Viewport): unit =
     let (rows, columns) = world.size
     let cellWidth = (float32 viewport.Width) / (float32 columns)
     let cellHeight = (float32 viewport.Height) / (float32 rows)
-    world.alive
-    |> Set.iter (fun (row, column) ->
+    let renderCell (color: Color) ((row, column): (int * int)): unit =
         spriteBatch.FillRectangle(
             RectangleF(float32 column * cellWidth,
                        float32 row * cellHeight,
                        cellWidth, cellHeight),
-            Color(128, 128, 128)))
+            color)
+    world.alive |> Set.iter (renderCell (Color (128, 128, 128)))
+    world.player |> renderCell (Color (200, 128, 128))
