@@ -101,4 +101,4 @@ let renderWorld (world: World) (spriteBatch: SpriteBatch) (viewport: Viewport): 
                        cellWidth, cellHeight),
             color)
     world.alive |> Set.iter (renderCell (Color (128, 128, 128)))
-    world.player |> renderCell (Color (128, 0, 0))
+    world.player |> renderCell (Color (200, 128, 128))
