@@ -6,25 +6,33 @@ open MonoGame.Extended
 
 type World = private {
   alive: Set<int * int>;
-  size: int * int
+  size: int * int;
+  player: int * int
 }
 
 let modulo n m = ((n % m) + m) % m
 
-let makeWorld (map: string list): World = {
-  size = (List.length map, String.length map.[0]);
-  alive = map
-          |> List.mapi (fun i row ->
-              row
-              |> Seq.toList
-              |> List.mapi (fun j cell ->
-                 if cell = '@'
-                 then [(i, j)]
-                 else [])
-              |> List.concat)
-          |> List.concat
-          |> Set.ofList
-}
+let indexMap (map: string list): (char * int * int) list =
+    map
+    |> List.mapi (fun i row ->
+        row
+        |> Seq.toList
+        |> List.mapi (fun j cell -> (cell, i, j)))
+    |> List.concat
+
+let makeWorld (map: string list): World =
+    let indexedMap = indexMap map
+    {
+        size = (List.length map, String.length map.[0]);
+        alive = indexedMap
+                |> List.filter (fun (x, _, _) -> x = '@')
+                |> List.map (fun (_, i, j) -> (i, j))
+                |> Set.ofList
+        player = (match indexedMap |> List.filter (fun (x, _, _) -> x = '+') with
+                  | [('+', i, j)] -> (i, j)
+                  | []            -> failwith "Not enough players"
+                  | _             -> failwith "Too many players")
+    }
 
 let countNeighbors (world: World) ((i, j) : int * int): int =
   let (rows, columns) = world.size
