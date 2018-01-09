@@ -36,7 +36,7 @@ type MonogameRunner () as this =
         lastMouseState := !currentMouseState
         currentMouseState := Mouse.GetState()
         if ((!lastMouseState).LeftButton = ButtonState.Released && (!currentMouseState).LeftButton = ButtonState.Pressed)
-        then world := updateWorld (!world)
+        then world := nextWorld (!world)
         else ()
 
     override this.Draw(gameTime) =

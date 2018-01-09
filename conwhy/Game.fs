@@ -43,7 +43,7 @@ let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
   | false -> []
   | true -> [(i, j)]
 
-let updateWorld (world: World): World =
+let nextWorld (world: World): World =
   let (row, column) = world.size
   { world with alive = [for i in 0 .. (row - 1) do
                         for j in 0 .. (column - 1) do
