@@ -39,14 +39,22 @@ type MonogameRunner () as this =
         let currentMouseState = Mouse.GetState()
         let currentKeyboardState = Keyboard.GetState()
         
-        if this.KeyPressed currentKeyboardState Keys.Left
+        if this.KeyPressed currentKeyboardState Keys.A
         then world := (!world) |> movePlayer Left |> nextWorld
-        else if this.KeyPressed currentKeyboardState Keys.Right
+        else if this.KeyPressed currentKeyboardState Keys.D
         then world := (!world) |> movePlayer Right |> nextWorld
-        else if this.KeyPressed currentKeyboardState Keys.Up
+        else if this.KeyPressed currentKeyboardState Keys.W
         then world := (!world) |> movePlayer Up |> nextWorld
-        else if this.KeyPressed currentKeyboardState Keys.Down
+        else if this.KeyPressed currentKeyboardState Keys.X
         then world := (!world) |> movePlayer Down |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.Q
+        then world := (!world) |> movePlayer LeftUp |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.E
+        then world := (!world) |> movePlayer RightUp |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.Z
+        then world := (!world) |> movePlayer LeftDown |> nextWorld
+        else if this.KeyPressed currentKeyboardState Keys.C
+        then world := (!world) |> movePlayer RightDown |> nextWorld
         else ()
 
         previousMouseState := currentMouseState
