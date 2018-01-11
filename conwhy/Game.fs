@@ -14,7 +14,7 @@ type World = private {
 
 let private modulo n m = ((n % m) + m) % m
 
-let moveCoord (direction: Direction) ((row, column): (int * int)): (int * int) =
+let private moveCoord (direction: Direction) ((row, column): (int * int)): (int * int) =
     match direction with
     | Left      -> (row    , column - 1)
     | Right     -> (row    , column + 1)
@@ -25,18 +25,10 @@ let moveCoord (direction: Direction) ((row, column): (int * int)): (int * int) =
     | LeftDown  -> (row + 1, column - 1)
     | RightDown -> (row + 1, column + 1)
 
-let wrapCoord ((rows, columns): (int * int)) ((row, column): (int * int)): (int * int) =
+let private wrapCoord ((rows, columns): (int * int)) ((row, column): (int * int)): (int * int) =
     (modulo row rows, modulo column columns)
 
-let movePlayer (direction: Direction) (world: World): World =
-    let nextPlayer = world.player
-                     |> moveCoord direction
-                     |> wrapCoord world.size
-    if Set.contains nextPlayer world.alive
-    then world
-    else { world with player = nextPlayer }
-
-let indexMap (map: string list): (char * int * int) list =
+let private indexMap (map: string list): (char * int * int) list =
     map
     |> List.mapi (fun i row ->
         row
@@ -49,7 +41,7 @@ let makeWorld (map: string list): World =
     {
         size = (List.length map, String.length map.[0]);
         alive = indexedMap
-                |> List.filter (fun (x, _, _) -> x = '@')
+                |> List.filter (fun (x, _, _) -> x = '@' || x = '+')
                 |> List.map (fun (_, i, j) -> (i, j))
                 |> Set.ofList
         player = (match indexedMap |> List.filter (fun (x, _, _) -> x = '+') with
@@ -58,7 +50,7 @@ let makeWorld (map: string list): World =
                   | _             -> failwith "Too many players")
     }
 
-let countNeighbors (world: World) ((i, j) : int * int): int =
+let private countNeighbors (world: World) ((i, j) : int * int): int =
   let (rows, columns) = world.size
   [for i in -1 .. 1 do
    for j in -1 .. 1 do
@@ -69,7 +61,7 @@ let countNeighbors (world: World) ((i, j) : int * int): int =
            then 1
            else 0)
 
-let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
+let private nextGenCell (world: World) ((i, j): int * int): (int * int) list =
   let neighbors = countNeighbors world (i, j) in
   match Set.contains (i, j) (Set.add world.player world.alive) with
   | false when neighbors = 3 -> [(i, j)]
@@ -77,18 +69,23 @@ let nextGenCell (world: World) ((i, j): int * int): (int * int) list =
   | false -> []
   | true -> [(i, j)]
 
-let nextWorld (world: World): World =
+let private nextWorld (world: World): World =
   let (row, column) = world.size
-  match nextGenCell world world.player with
-  | [nextPlayer] -> { world with alive = [for i in 0 .. (row - 1) do
-                                          for j in 0 .. (column - 1) do
-                                          yield nextGenCell world (i, j)]
-                                         |> List.concat
-                                         |> Set.ofList
-                                         |> Set.remove nextPlayer
-                                 player = nextPlayer
-                    }
-  | _ -> failwith "Game Over"
+  { world with alive = [for i in 0 .. (row - 1) do
+                        for j in 0 .. (column - 1) do
+                        yield nextGenCell world (i, j)]
+                       |> List.concat
+                       |> Set.ofList
+  }
+
+let makeTurn (direction: Direction) (world: World): World option =
+    let world' = nextWorld world
+    let player' = world.player
+                  |> moveCoord direction
+                  |> wrapCoord world.size
+    if Set.contains player' world'.alive
+    then Some { world' with player = player' }
+    else None
 
 let renderWorld (world: World) (spriteBatch: SpriteBatch) (viewport: Viewport): unit =
     let (rows, columns) = world.size

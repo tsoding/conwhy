@@ -9,19 +9,21 @@ open Game
 type MonogameRunner () as this =
     inherit Game()
     do this.Content.RootDirectory <- "Content"
+
     let graphics = new GraphicsDeviceManager(this)
     let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
-    let initialWorld = makeWorld [".+@.......";
-                                  "..@..@@...";
-                                  "@@@.@@....";
-                                  ".......@@.";
-                                  "...@.@@@..";
-                                  "......@@..";
+    let mutable fontu = Unchecked.defaultof<SpriteFont>
+    let initialWorld = makeWorld [".+........";
+                                  "..@.......";
+                                  "@@@...@...";
+                                  ".....@.@..";
                                   "......@...";
-                                  "..........";
+                                  ".....@@@..";
+                                  "..@@......";
+                                  ".@@@..@@..";
                                   "..........";
                                   "..........";]
-    let mutable world = ref (initialWorld)
+    let mutable world = ref (Some initialWorld)
     let previousMouseState = ref (Mouse.GetState())
     let previousKeyboardState = ref (Keyboard.GetState())
 
@@ -29,18 +31,20 @@ type MonogameRunner () as this =
         (!previousKeyboardState).IsKeyUp(key) && keyboardState.IsKeyDown(key)
 
     member this.PlayTurn (direction: Direction): unit =
-        world := (!world) |> movePlayer direction |> nextWorld
+        world := (!world) |> Option.bind (makeTurn direction)
 
     override this.Initialize() =
         this.IsMouseVisible <- true
         graphics.PreferredBackBufferWidth <- 1000
         graphics.PreferredBackBufferHeight <- 1000
+
         graphics.ApplyChanges()
         spriteBatch <- new SpriteBatch(this.GraphicsDevice)
         base.Initialize()
         ()
 
     override this.LoadContent() =
+        fontu <- this.Content.Load<SpriteFont>("Font")
         ()
 
     override this.Update(gameTime) =
@@ -63,10 +67,8 @@ type MonogameRunner () as this =
         then this.PlayTurn LeftDown
         else if this.KeyPressed currentKeyboardState Keys.C
         then this.PlayTurn RightDown
-        else if this.KeyPressed currentKeyboardState Keys.F
-        then world := (!world) |> nextWorld
         else if this.KeyPressed currentKeyboardState Keys.Space
-        then world := initialWorld
+        then world := Some initialWorld
         else ()
 
         previousMouseState := currentMouseState
@@ -75,9 +77,14 @@ type MonogameRunner () as this =
     override this.Draw(gameTime) =
         this.GraphicsDevice.Clear(Color(24, 24, 24))
         spriteBatch.Begin();
-        renderWorld !world spriteBatch this.GraphicsDevice.Viewport;
+        match !world with
+        | Some world -> renderWorld world spriteBatch this.GraphicsDevice.Viewport
+        | None -> this.DrawGameOverScreen ()
         spriteBatch.End();
         ()
+
+    member this.DrawGameOverScreen () =
+        spriteBatch.DrawString(fontu, "Game Over. Press SPACE to restart.", Vector2(0.0f, 0.0f), Color(255, 128, 128))
 
 [<EntryPoint>]
 let main _ =
